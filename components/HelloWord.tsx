@@ -4,6 +4,7 @@ import { useNavigation } from "@react-navigation/native";
 // status bar
 import { StatusBar } from "expo-status-bar";
 import { useAppContext } from "../context/AppContext";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 
 // Função para gerar um array de pontos com posições aleatórias
 const generateStars = (numStars = 100) => {
@@ -43,9 +44,10 @@ export default function HelloWord() {
             }}
           />
         ))}
-        <View className="absolute bg-white w-32 h-32 rounded-full -bottom-16 shadow-xl flex justify-center items-center p-4">
+        <View className="absolute bg-white w-32 h-32 rounded-full -bottom-16 shadow-xl flex justify-center items-center  p-2">
           <Image
             source={require("../assets/logo.png")}
+            resizeMode="contain"
             className="w-full h-full"
           />
         </View>
@@ -53,8 +55,8 @@ export default function HelloWord() {
       <View className="h-1/2 pt-20 pb-10 flex items-center space-y-8 justify-between ">
         <View className=" flex items-center space-y-4">
           <Text className="font-bold text-5xl text-gray-800">AMAF</Text>
-          <Text className="text-gray-800 text-lg">
-            Aplicativo de mapeamento de arvores frutiferas
+          <Text className="text-gray-600 text-lg px-4 text-center">
+            Aplicativo de mapeamento de árvores frutíferas
           </Text>
         </View>
         <View>
@@ -63,11 +65,12 @@ export default function HelloWord() {
               setIsFirstVisit(false);
               navigation.navigate("Login" as never);
             }}
-            className="bg-[#A0F482] rounded-full px-6 py-3"
+            className="bg-green-400 rounded-full px-6 py-3 flex-row items-center justify-center space-x-2"
           >
-            <Text className="text-lg text-gray-800">
-              Get Started for Free {"   >"}
+            <Text className="text-lg text-white font-semibold">
+              Comece Gratuitamente
             </Text>
+            <MaterialIcons name="arrow-forward-ios" size={24} color="white" />
           </TouchableOpacity>
         </View>
       </View>

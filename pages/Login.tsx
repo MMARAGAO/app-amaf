@@ -1,96 +1,178 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import {
   View,
   Text,
   Image,
-  TextInput,
   TouchableOpacity,
-  StyleSheet,
+  KeyboardAvoidingView,
+  ScrollView,
+  Platform,
 } from "react-native";
-// navegacao
+import { DefaultTheme, TextInput } from "react-native-paper";
 import { useNavigation } from "@react-navigation/native";
 import HelloWord from "../components/HelloWord";
 import { useAppContext } from "../context/AppContext";
+import { StatusBar } from "expo-status-bar";
+import { useUserContext } from "../context/UserContext";
+
+import {
+  GoogleSignin,
+  statusCodes,
+} from "@react-native-google-signin/google-signin";
+
+GoogleSignin.configure({
+  webClientId:
+    "454016935398-8dibai1966dg4c843rj28j0o5dej9ge0.apps.googleusercontent.com",
+});
 
 export default function Login() {
-  const navigation = useNavigation();
-  const { isFirstVisit, setIsFirstVisit } = useAppContext(); // Usar o contexto
+  const { user, setUser } = useUserContext();
+  const { isFirstVisit } = useAppContext();
+  const [showPassword, setShowPassword] = useState(false);
 
-  // se teste for true, renderiza o componente HelloWord
+  const signIn = async () => {
+    try {
+      await GoogleSignin.hasPlayServices();
+      const userInfo = await GoogleSignin.signIn();
+      if (userInfo && userInfo.data) {
+        const { data } = userInfo;
+        setUser({
+          name: data.user?.name ?? "",
+          email: data.user?.email ?? "",
+          photo: data.user?.photo ?? "",
+        });
+      } else {
+        console.log("User info or data is null");
+      }
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        const typedError = error as Error & { code?: string };
+        if (typedError.code === statusCodes.SIGN_IN_CANCELLED) {
+          console.log("User cancelled the login process");
+        } else if (typedError.code === statusCodes.IN_PROGRESS) {
+          console.log("Sign in is in progress");
+        } else if (
+          typedError.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE
+        ) {
+          console.log("Play services not available");
+        } else {
+          console.log("Some other error happened", error);
+        }
+      }
+    }
+  };
+
+  const customTheme = {
+    ...DefaultTheme,
+    colors: {
+      ...DefaultTheme.colors,
+      primary: "#e5e7eb",
+      placeholder: "#e5e7eb",
+      background: "white",
+      surface: "#e5e7eb",
+      outline: "#e5e7eb",
+    },
+  };
+
   if (isFirstVisit) {
     return <HelloWord />;
   } else {
     return (
-      <View className="flex-1 justify-center px-8 space-y-4 bg-white">
-        <View className="space-y-4 mb-16">
-          <View className="flex flex-row justify-center items-center">
-            <Image source={require("../assets/logo.png")} className="w-6 h-6" />
-            <Text className="font-bold text-3xl">AMAF</Text>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      >
+        <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+          <View className="min-h-screen bg-white">
+            <StatusBar style="light" />
+            <View className="h-[32%] w-full bg-gray-800 relative justify-end">
+              <View className="w-96 h-96 bg-gray-100/30 rounded-full -top-12 -left-20 absolute opacity-10"></View>
+              <View className="w-80 h-80 bg-gray-100/30 rounded-full -top-12 -left-20 absolute opacity-20"></View>
+              <View className="px-6 py-16">
+                <Text className="text-white text-4xl font-bold">
+                  Seja bem-vindo!
+                </Text>
+                <Text className="text-white text-lg">
+                  Faça login para continuar
+                </Text>
+              </View>
+            </View>
+            <View className="justify-between items-center px-6 h-[68%] py-10">
+              <View className="w-full space-y-2">
+                <TextInput
+                  label="Email"
+                  mode="outlined"
+                  theme={customTheme}
+                  className="w-full"
+                  placeholder="Digite seu email"
+                  selectionColor="#4ade80"
+                  cursorColor="#4ade80"
+                  underlineColor="#4ade80"
+                  activeUnderlineColor="#4ade80"
+                  activeOutlineColor="#4ade80"
+                  // cor do placeholder
+                  placeholderTextColor="#d1d5db"
+                />
+                <TextInput
+                  className="w-full"
+                  label="Senha"
+                  mode="outlined"
+                  theme={customTheme}
+                  secureTextEntry={!showPassword}
+                  placeholder="Digite sua senha"
+                  selectionColor="#4ade80"
+                  cursorColor="#4ade80"
+                  underlineColor="#4ade80"
+                  activeUnderlineColor="#4ade80"
+                  activeOutlineColor="#4ade80"
+                  placeholderTextColor="#d1d5db"
+                  right={
+                    <TextInput.Icon
+                      icon={showPassword ? "eye-off" : "eye"}
+                      onPress={() => setShowPassword(!showPassword)}
+                      color="gray"
+                    />
+                  }
+                />
+                <TouchableOpacity className="w-full">
+                  <Text className="text-green-400 text-right text-md">
+                    Esqueceu a senha?
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              <TouchableOpacity className="bg-green-400 py-4 rounded-lg w-full">
+                <Text className="text-white text-center text-lg font-semibold">
+                  Entrar
+                </Text>
+              </TouchableOpacity>
+              <View className="flex-row w-full justify-center items-center space-x-2 px-10">
+                <View className="bg-gray-200 h-[1px] w-1/2"></View>
+                <Text className="text-center text-gray-600 text-md">Ou</Text>
+                <View className="bg-gray-200 h-[1px] w-1/2"></View>
+              </View>
+              <TouchableOpacity
+                className="rounded-xl border border-gray-300 rounded-lg items-center flex-row space-x-2 px-20 py-2"
+                onPress={signIn}
+              >
+                <Image
+                  source={require("../assets/google.png")}
+                  className="w-8 h-8"
+                />
+                <Text className="text-center font-semibold text-lg">
+                  Google
+                </Text>
+              </TouchableOpacity>
+              <View className="flex-row w-full justify-center items-center mt-4">
+                <Text className="text-gray-600">Não tem uma conta?</Text>
+                <TouchableOpacity>
+                  <Text className="text-green-400"> Cadastre-se</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
           </View>
-          <Text className="text-gray-700 text-lg text-center">
-            Trabalhe em equilíbrio.
-          </Text>
-        </View>
-        <View className="space-y-6">
-          <View className="space-y-2">
-            <Text className="text-gray-800 text-lg font-bold">
-              Seu Endereço de e-mail
-            </Text>
-            <TextInput
-              placeholder="amafdf@gmail.com"
-              placeholderTextColor={"#9ca3af"}
-              className="border border-gray-400 w-full rounded-full border-gray-300 px-4 py-3 focus:outline-none focus:border-[#A0F482]"
-            />
-          </View>
-          <View className="space-y-2">
-            <Text className="text-gray-800 text-lg font-bold">
-              Digite sua senha
-            </Text>
-            <TextInput
-              placeholder="min. 8 caracteres"
-              placeholderTextColor={"#9ca3af"}
-              secureTextEntry
-              className="border border-gray-400 w-full rounded-full border-gray-300 px-4 py-3 focus:outline-none focus:border-[#A0F482]"
-            />
-          </View>
-          <TouchableOpacity
-            onPress={() => navigation.navigate("Tab" as never)}
-            className="bg-[#A0F482] rounded-full px-6 py-3 mt-8"
-          >
-            <Text className="text-lg text-gray-800 text-center font-bold">
-              Continue
-            </Text>
-          </TouchableOpacity>
-          <View className="flex flex-row justify-center items-center space-x-10 py-2 ">
-            <View className="w-1/3 h-[1px] bg-gray-200"></View>
-            <Text className="text-gray-400">ou</Text>
-            <View className="w-1/3 h-[1px] bg-gray-200"></View>
-          </View>
-          {/* botoes para fazer login com o google */}
-          <View className="flex flex-row mt-4">
-            <TouchableOpacity className="bg-white w-full border border-gray-300 shadow-2xl rounded-full px-6 py-3 flex flex-row justify-center space-x-2">
-              <Image
-                source={require("../assets/google.png")}
-                className="w-6 h-6 mt-1"
-              />
-              <Text className="text-lg text-gray-800 font-bold">
-                Sign in with Google
-              </Text>
-            </TouchableOpacity>
-          </View>
-          <View className="flex flex-row">
-            {/* Cadastre-se */}
-            <Text className="text-gray-800 text-center">
-              Não tem uma conta?
-            </Text>
-            <TouchableOpacity>
-              <Text className="text-[#A0F482] text-center font-bold ml-1">
-                Cadastre-se
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     );
   }
 }
